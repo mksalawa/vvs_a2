@@ -68,7 +68,7 @@ public class CustomersDBTest {
 	 *	TODO
 	 */
 	@Test
-	public void updatingValuesSavesThemTest() throws ApplicationException {
+	public void updatingContactSavesTheChangesTest() throws ApplicationException {
 		int vat = 503183504;
 		int phoneNumber = 917774773;
 		assertFalse(hasClient(vat));
@@ -84,7 +84,7 @@ public class CustomersDBTest {
 	 */
 
 	@Test
-	public void deletingAllMakesEmptyListTest() throws ApplicationException {
+	public void deletingAllCustomersTest() throws ApplicationException {
 		assertTrue(CustomerService.INSTANCE.getAllCustomers().customers.size() != 0);
 		deleteAllCostumers();
 		assertTrue(CustomerService.INSTANCE.getAllCustomers().customers.size() == 0);
@@ -133,37 +133,5 @@ public class CustomersDBTest {
 		//	SaleService.INSTANCE.getSaleByCustomerVat(vat));
 		assertEquals("Size should be zero",0,SaleService.INSTANCE.getSaleByCustomerVat(vat).sales.size());
 	}
-	
-	private boolean hasClient(int vat) throws ApplicationException {	
-		CustomersDTO customersDTO = CustomerService.INSTANCE.getAllCustomers();
-		
-		for(CustomerDTO customer : customersDTO.customers)
-			if (customer.vat == vat)
-				return true;			
-		return false;
-	}
-	
-	/**
-	 * f) adding a new sale increases the total number of all sales by one
-	 *  TODO
-	 */
-	@Test
-	public void incrementingNumberOfSalesTest() throws ApplicationException {
-		int vat = 503183504;
-		assertFalse(hasClient(vat));
-		CustomerService.INSTANCE.addCustomer(vat, "FCUL", 217500000);
-		int numPrevSales = SaleService.INSTANCE.getAllSales().sales.size();
-		SaleService.INSTANCE.addSale(vat);
-		int numSales = SaleService.INSTANCE.getAllSales().sales.size();
-		assertEquals("Should increment by one the number of sales",numPrevSales + 1,numSales);
-	}
-	
-	/**
-	private int getFirstCustomerVat(){
-		return CustomerService.INSTANCE.getAllCustomers().customers.get(0).vat;
-	}
-	**/
-
-	
 	
 }

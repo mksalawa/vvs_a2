@@ -60,6 +60,9 @@ public class SaleDBTest {
 		assertEquals(expected, actual);
     }
     
+    /**
+	 * f) adding a new sale increases the total number of all sales by one
+	 */
     @Test
     public void addSaleSizeTest() throws ApplicationException {
     	SaleService.INSTANCE.addSale(197672337);
