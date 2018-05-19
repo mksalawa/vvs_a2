@@ -1,11 +1,13 @@
 package vvs_dbsetup;
 
-import static com.ninja_squad.dbsetup.Operations.*;
-import com.ninja_squad.dbsetup.generator.ValueGenerators;
-import com.ninja_squad.dbsetup.operation.Insert;
-import com.ninja_squad.dbsetup.operation.Operation;
+import static com.ninja_squad.dbsetup.Operations.deleteAllFrom;
+import static com.ninja_squad.dbsetup.Operations.insertInto;
+import static com.ninja_squad.dbsetup.Operations.sequenceOf;
 
 import java.util.GregorianCalendar;
+
+import com.ninja_squad.dbsetup.operation.Insert;
+import com.ninja_squad.dbsetup.operation.Operation;
 
 import webapp.persistence.PersistenceException;
 
