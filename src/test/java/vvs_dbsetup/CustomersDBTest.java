@@ -50,7 +50,6 @@ public class CustomersDBTest {
 	
 	/**
 	 * a) The SUT does not allow to add a new client with an existing VAT
-	 * TODO
 	 */
 	@Test
 	public void noDuplicateVATTest() throws ApplicationException {
