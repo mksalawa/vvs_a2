@@ -17,7 +17,7 @@ import static org.junit.Assert.*;
 
 public class WebappTest {
 
-    private static final String APPLICATION_URL = "http://localhost:8080/VVS_webappdemo/";
+    public static final String APPLICATION_URL = "http://localhost:8080/VVS_webappdemo/";
     private static final String[] VALID_VATS = new String[] {
         "108136701",
         "108136710",
@@ -34,8 +34,11 @@ public class WebappTest {
     private static final String CUSTOMER_VAT = "503183504";
     private static final String CUSTOMER_DESIGNATION = "FCUL";
     private static final String CUSTOMER_PHONE = "217500000";
+    private static final String SALE_STATUS_OPEN = "O";
+    private static final String SALE_STATUS_CLOSED = "C";
 
     private static HtmlPage page;
+    private final WebappUtils webappUtils = new WebappUtils();
 
     @SuppressWarnings("Duplicates")
     @BeforeClass
@@ -58,44 +61,12 @@ public class WebappTest {
 
     @Before
     public void setUp() throws Exception {
-        addCustomer(CUSTOMER_VAT, CUSTOMER_DESIGNATION, CUSTOMER_PHONE);
+        webappUtils.addCustomer(CUSTOMER_VAT, CUSTOMER_DESIGNATION, CUSTOMER_PHONE, page);
     }
 
     @After
     public void tearDown() throws Exception {
-        removeCustomer(CUSTOMER_VAT);
-    }
-
-    private HtmlPage removeCustomer(String vat) throws Exception {
-        // at index, goto Remove case and remove the previous client
-        HtmlAnchor removeCustomerLink = page.getAnchorByHref("RemoveCustomerPageController");
-        HtmlPage nextPage = (HtmlPage) removeCustomerLink.openLinkInNewWindow();
-
-        HtmlForm removeCustomerForm = nextPage.getForms().get(0);
-        removeCustomerForm.getInputByName("vat").setValueAttribute(vat);
-        return removeCustomerForm.getInputByName("submit").click();
-    }
-
-    private HtmlPage addCustomer(String vat, String designation, String phone) throws Exception {
-        // get a specific link
-        HtmlAnchor addCustomerLink = page.getAnchorByHref("addCustomer.html");
-        // click on it
-        HtmlPage nextPage = (HtmlPage) addCustomerLink.openLinkInNewWindow();
-        // check if title is the one expected
-        assertEquals("Enter Name", nextPage.getTitleText());
-
-        // get the page first form:
-        HtmlForm addCustomerForm = nextPage.getForms().get(0);
-
-        // place data at form
-        HtmlInput vatInput = addCustomerForm.getInputByName("vat");
-        vatInput.setValueAttribute(vat);
-        HtmlInput designationInput = addCustomerForm.getInputByName("designation");
-        designationInput.setValueAttribute(designation);
-        HtmlInput phoneInput = addCustomerForm.getInputByName("phone");
-        phoneInput.setValueAttribute(phone);
-        // submit form
-        return addCustomerForm.getInputByName("submit").click();
+        webappUtils.removeCustomer(CUSTOMER_VAT, page);
     }
 
     /**
@@ -110,7 +81,7 @@ public class WebappTest {
         final String LOCALITY = "locality";
 
         // check the list of the customer's addresses
-        HtmlPage customerInfoPage = getCustomerInfoPage(CUSTOMER_VAT);
+        HtmlPage customerInfoPage = webappUtils.getCustomerInfoPage(CUSTOMER_VAT);
         List<DomElement> addressListElements = customerInfoPage.getElementsById("address-list");
         int INITIAL_ROW_COUNT = 0;
         if (!addressListElements.isEmpty()) {
@@ -142,7 +113,7 @@ public class WebappTest {
         assertTrue(textReportPage.contains(LOCALITY));
 
         // check the list of the customer's addresses
-        HtmlPage updatedCustomerInfoPage = getCustomerInfoPage(CUSTOMER_VAT);
+        HtmlPage updatedCustomerInfoPage = webappUtils.getCustomerInfoPage(CUSTOMER_VAT);
 
         HtmlTable addressTable = updatedCustomerInfoPage.getHtmlElementById("address-list");
         List<HtmlTableRow> rows = addressTable.getRows();
@@ -157,12 +128,6 @@ public class WebappTest {
             }
         }
         fail("Could not find the added address.");
-    }
-
-    private HtmlPage getCustomerInfoPage(String vat) throws IOException {
-        List<NameValuePair> params = new ArrayList<>();
-        params.add(new NameValuePair("vat", vat));
-        return getPage(new URL(APPLICATION_URL + "GetCustomerPageController"), params);
     }
 
     /**
@@ -185,9 +150,9 @@ public class WebappTest {
         String CUSTOMER_0_NAME = "John Snow";
         String CUSTOMER_1_NAME = "John Brown";
         String CUSTOMER_2_NAME = "Joe Black";
-        addCustomer(VALID_VATS[0], CUSTOMER_0_NAME, CUSTOMER_PHONE);
-        addCustomer(VALID_VATS[1], CUSTOMER_1_NAME, CUSTOMER_PHONE);
-        addCustomer(VALID_VATS[2], CUSTOMER_2_NAME, CUSTOMER_PHONE);
+        webappUtils.addCustomer(VALID_VATS[0], CUSTOMER_0_NAME, CUSTOMER_PHONE, page);
+        webappUtils.addCustomer(VALID_VATS[1], CUSTOMER_1_NAME, CUSTOMER_PHONE, page);
+        webappUtils.addCustomer(VALID_VATS[2], CUSTOMER_2_NAME, CUSTOMER_PHONE, page);
 
         // get all customers again
         HtmlPage updatedAllCustomersPage = (HtmlPage) page.getAnchorByHref("GetAllCustomersPageController").openLinkInNewWindow();
@@ -203,9 +168,9 @@ public class WebappTest {
         assertEquals("Did not find all added customers.", 3, foundCustomers.size());
 
         // cleanup - for some reason not working??? caching pages?
-        removeCustomer(VALID_VATS[0]);
-        removeCustomer(VALID_VATS[1]);
-        removeCustomer(VALID_VATS[2]);
+        webappUtils.removeCustomer(VALID_VATS[0], page);
+        webappUtils.removeCustomer(VALID_VATS[1], page);
+        webappUtils.removeCustomer(VALID_VATS[2], page);
     }
 
     private void checkCustomerRow(int index, String customerName, String customerPhone, HtmlTableRow customerRow,
@@ -228,7 +193,7 @@ public class WebappTest {
     @Test
     public void newSaleIsOpenTest() throws Exception {
         // get existing sales of the customer
-        HtmlPage customerSalePage = getCustomerSalePage(CUSTOMER_VAT);
+        HtmlPage customerSalePage = webappUtils.getCustomerSalePage(CUSTOMER_VAT);
         List<String> existingSales = new ArrayList<>();
         List<DomElement> sales = customerSalePage.getElementsById("sale-list");
         if (!sales.isEmpty()) {
@@ -240,10 +205,10 @@ public class WebappTest {
         }
 
         // add new sale
-        addSaleToCustomer(String.valueOf(CUSTOMER_VAT));
+        webappUtils.addSaleToCustomer(String.valueOf(CUSTOMER_VAT), page);
 
         // get updated sales of the customer
-        HtmlPage updatedCustomerSalePage = getCustomerSalePage(CUSTOMER_VAT);
+        HtmlPage updatedCustomerSalePage = webappUtils.getCustomerSalePage(CUSTOMER_VAT);
         HtmlTable saleList = updatedCustomerSalePage.getHtmlElementById("sale-list");
         int salesCount = saleList.getRowCount() - 1; // ignore title row
         assertEquals(1 + existingSales.size(), salesCount);
@@ -253,44 +218,12 @@ public class WebappTest {
             String id = saleRow.getCell(0).asText();
             if (!existingSales.contains(id)) {
                 assertEquals(CUSTOMER_VAT, saleRow.getCell(4).asText());   // Customer VAT
-                assertEquals("O", saleRow.getCell(3).asText()); // Status
+                assertEquals(SALE_STATUS_OPEN, saleRow.getCell(3).asText()); // Status
                 assertEquals("0.0", saleRow.getCell(2).asText()); // Total
                 return;
             }
         }
         fail("Did not find the added sale.");
-    }
-
-    private HtmlPage addSaleToCustomer(String vat) throws IOException {
-        // add a new sale to the customer
-        HtmlAnchor addSaleLink = page.getAnchorByHref("addSale.html");
-        HtmlPage nextPage = (HtmlPage) addSaleLink.openLinkInNewWindow();
-
-        // check if title is the one expected
-        assertEquals("New Sale", nextPage.getTitleText());
-        // get the page first form and place data in the form
-        HtmlForm addSaleForm = nextPage.getForms().get(0);
-        addSaleForm.getInputByName("customerVat").setValueAttribute(vat);
-        // submit form
-        return addSaleForm.getInputByName("submit").click();
-    }
-
-    private HtmlPage getCustomerSalePage(String vat) throws IOException {
-        List<NameValuePair> params = new ArrayList<>();
-        params.add(new NameValuePair("customerVat", vat));
-        return getPage(new URL(APPLICATION_URL + "GetSalePageController"), params);
-    }
-
-    private HtmlPage getPage(URL url, List<NameValuePair> reqParams) throws IOException {
-        HtmlPage page;
-        // Build a GET request
-        try (final WebClient webClient = new WebClient(BrowserVersion.getDefault())) {
-            WebRequest requestSettings = new WebRequest(url, HttpMethod.GET);
-            // Set the request parameters
-            requestSettings.setRequestParameters(reqParams);
-            page = webClient.getPage(requestSettings);
-        }
-        return page;
     }
 
     /**
