@@ -102,7 +102,6 @@ public class WebappTest {
      * After inserting a new address for an existing customer, the table of addresses of that client includes
      * that address and its total row size increases by one.
      */
-    @SuppressWarnings("Duplicates")
     @Test
     public void insertAddressTest() throws Exception {
         final String ADDRESS = "address";
@@ -134,7 +133,6 @@ public class WebappTest {
         // submit form
         HtmlPage reportPage = addAddressForm.getInputByName("submit").click();
 
-
         // check if the report page includes the proper values
         String textReportPage = reportPage.asText();
         assertTrue(textReportPage.contains(String.valueOf(CUSTOMER_VAT)));
@@ -162,16 +160,9 @@ public class WebappTest {
     }
 
     private HtmlPage getCustomerInfoPage(String vat) throws IOException {
-        HtmlPage customerInfoPage;
-        // Build a GET request
-        try (final WebClient webClient = new WebClient(BrowserVersion.getDefault())) {
-            WebRequest requestSettings = new WebRequest(new URL(APPLICATION_URL + "GetCustomerPageController"), HttpMethod.GET);
-            // Set the request parameters
-            requestSettings.setRequestParameters(new ArrayList<>());
-            requestSettings.getRequestParameters().add(new NameValuePair("vat", vat));
-            customerInfoPage = webClient.getPage(requestSettings);
-        }
-        return customerInfoPage;
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new NameValuePair("vat", vat));
+        return getPage(new URL(APPLICATION_URL + "GetCustomerPageController"), params);
     }
 
     /**
@@ -181,9 +172,11 @@ public class WebappTest {
     public void insertNewCustomersTest() throws Exception {
 
         // make sure the customers to be added are not in the DB
-        removeCustomer(VALID_VATS[0]);
-        removeCustomer(VALID_VATS[1]);
-        removeCustomer(VALID_VATS[2]);
+        // PROBLEM: due to caching, the cleanup of the DB at the end of the test does not work if these are executed.
+        //          Manual cache clearing did not solve the issue.
+        // removeCustomer(VALID_VATS[0]);
+        // removeCustomer(VALID_VATS[1]);
+        // removeCustomer(VALID_VATS[2]);
 
         // get all customers
         HtmlPage allCustomersPage = (HtmlPage) page.getAnchorByHref("GetAllCustomersPageController").openLinkInNewWindow();
@@ -234,7 +227,70 @@ public class WebappTest {
      */
     @Test
     public void newSaleIsOpenTest() throws Exception {
+        // get existing sales of the customer
+        HtmlPage customerSalePage = getCustomerSalePage(CUSTOMER_VAT);
+        List<String> existingSales = new ArrayList<>();
+        List<DomElement> sales = customerSalePage.getElementsById("sale-list");
+        if (!sales.isEmpty()) {
+            HtmlTable saleList = customerSalePage.getHtmlElementById("sale-list");
+            // ignore the title row
+            for (int i = 1; i < saleList.getRowCount(); i++) {
+                existingSales.add(saleList.getRow(i).getCell(0).asText());
+            }
+        }
 
+        // add new sale
+        addSaleToCustomer(String.valueOf(CUSTOMER_VAT));
+
+        // get updated sales of the customer
+        HtmlPage updatedCustomerSalePage = getCustomerSalePage(CUSTOMER_VAT);
+        HtmlTable saleList = updatedCustomerSalePage.getHtmlElementById("sale-list");
+        int salesCount = saleList.getRowCount() - 1; // ignore title row
+        assertEquals(1 + existingSales.size(), salesCount);
+
+        for (int i = 1; i < saleList.getRowCount(); i++) {
+            HtmlTableRow saleRow = saleList.getRow(i);
+            String id = saleRow.getCell(0).asText();
+            if (!existingSales.contains(id)) {
+                assertEquals(CUSTOMER_VAT, saleRow.getCell(4).asText());   // Customer VAT
+                assertEquals("O", saleRow.getCell(3).asText()); // Status
+                assertEquals("0.0", saleRow.getCell(2).asText()); // Total
+                return;
+            }
+        }
+        fail("Did not find the added sale.");
+    }
+
+    private HtmlPage addSaleToCustomer(String vat) throws IOException {
+        // add a new sale to the customer
+        HtmlAnchor addSaleLink = page.getAnchorByHref("addSale.html");
+        HtmlPage nextPage = (HtmlPage) addSaleLink.openLinkInNewWindow();
+
+        // check if title is the one expected
+        assertEquals("New Sale", nextPage.getTitleText());
+        // get the page first form and place data in the form
+        HtmlForm addSaleForm = nextPage.getForms().get(0);
+        addSaleForm.getInputByName("customerVat").setValueAttribute(vat);
+        // submit form
+        return addSaleForm.getInputByName("submit").click();
+    }
+
+    private HtmlPage getCustomerSalePage(String vat) throws IOException {
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new NameValuePair("customerVat", vat));
+        return getPage(new URL(APPLICATION_URL + "GetSalePageController"), params);
+    }
+
+    private HtmlPage getPage(URL url, List<NameValuePair> reqParams) throws IOException {
+        HtmlPage page;
+        // Build a GET request
+        try (final WebClient webClient = new WebClient(BrowserVersion.getDefault())) {
+            WebRequest requestSettings = new WebRequest(url, HttpMethod.GET);
+            // Set the request parameters
+            requestSettings.setRequestParameters(reqParams);
+            page = webClient.getPage(requestSettings);
+        }
+        return page;
     }
 
     /**
