@@ -25,7 +25,7 @@
 <br>
 <br>
 <c:if test = "${addressesHelper.getAddresses().size() > 0}">
-    <table class="w3-table w3-bordered">
+    <table class="w3-table w3-bordered" id="address-list">
 	   <tr class="w3-black">
 		<th>Id</th>
 		<th>Address</th>
@@ -50,12 +50,12 @@
 <INPUT class="w3-btn w3-white w3-border w3-round-large" TYPE="TEXT" NAME="sale_id">
 <br>
 <br>
-<INPUT class="w3-btn w3-black w3-border w3-round-large" TYPE="SUBMIT" VALUE="Insert">
+<INPUT class="w3-btn w3-black w3-border w3-round-large" TYPE="SUBMIT" VALUE="Insert" name="submit">
 </FORM>
 <br>
 <br>
 <c:if test = "${salesHelper.getSales().size() > 0}">
-    <table class="w3-table w3-bordered">
+    <table class="w3-table w3-bordered" id="sale-list">
 	   <tr class="w3-black">
 		<th>Id</th>
 		<th>Date</th>

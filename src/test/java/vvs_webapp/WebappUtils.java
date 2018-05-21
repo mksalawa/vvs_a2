@@ -6,16 +6,16 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebRequest;
 import com.gargoylesoftware.htmlunit.html.*;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
-import org.junit.Assert;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.junit.Assert.assertEquals;
 
 public class WebappUtils {
-    public WebappUtils() {
-    }
 
     public static HtmlPage getPage(URL url, List<NameValuePair> reqParams) throws IOException {
         HtmlPage page;
@@ -24,6 +24,7 @@ public class WebappUtils {
             WebRequest requestSettings = new WebRequest(url, HttpMethod.GET);
             // Set the request parameters
             requestSettings.setRequestParameters(reqParams);
+            webClient.getCache().clear();
             page = webClient.getPage(requestSettings);
         }
         return page;
@@ -55,13 +56,28 @@ public class WebappUtils {
         return existingSales;
     }
 
+    public static List<String> getExistingDeliveryIds(String vat) throws IOException {
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new NameValuePair("vat", vat));
+        HtmlPage saleDeliveryPage =
+            WebappUtils.getPage(new URL(WebappTest.APPLICATION_URL + "GetSaleDeliveryPageController"), params);
+        List<String> existingDeliveryIds = new ArrayList<>();
+        if (!saleDeliveryPage.getElementsById("sale-delivery-list").isEmpty()) {
+            HtmlTable saleDeliveryTable = saleDeliveryPage.getHtmlElementById("sale-delivery-list");
+            existingDeliveryIds.addAll(saleDeliveryTable.getRows().subList(1, saleDeliveryTable.getRowCount()).stream()
+                .map(r -> r.getCell(0).asText())
+                .collect(Collectors.toList()));
+        }
+        return existingDeliveryIds;
+    }
+
     public static HtmlPage addCustomer(String vat, String designation, String phone, HtmlPage page) throws Exception {
         // get a specific link
         HtmlAnchor addCustomerLink = page.getAnchorByHref("addCustomer.html");
         // click on it
         HtmlPage nextPage = (HtmlPage) addCustomerLink.openLinkInNewWindow();
         // check if title is the one expected
-        Assert.assertEquals("Enter Name", nextPage.getTitleText());
+        assertEquals("Enter Name", nextPage.getTitleText());
 
         // get the page first form:
         HtmlForm addCustomerForm = nextPage.getForms().get(0);
@@ -87,13 +103,29 @@ public class WebappUtils {
         return removeCustomerForm.getInputByName("submit").click();
     }
 
+    public static HtmlPage addAddressToCustomer(String vat, String address, String door, String postalCode, String locality, HtmlPage page) throws IOException {
+        HtmlAnchor addAddressLink = page.getAnchorByHref("addAddressToCustomer.html");
+        HtmlPage nextPage = (HtmlPage) addAddressLink.openLinkInNewWindow();
+        // check if title is the one expected
+        assertEquals("Enter Address", nextPage.getTitleText());
+        HtmlForm addAddressForm = nextPage.getForms().get(0);
+        // place data in the form
+        addAddressForm.getInputByName("vat").setValueAttribute(vat);
+        addAddressForm.getInputByName("address").setValueAttribute(address);
+        addAddressForm.getInputByName("door").setValueAttribute(door);
+        addAddressForm.getInputByName("postalCode").setValueAttribute(postalCode);
+        addAddressForm.getInputByName("locality").setValueAttribute(locality);
+        // submit form
+        return addAddressForm.getInputByName("submit").click();
+    }
+
     public static HtmlPage addSaleToCustomer(String vat, HtmlPage page) throws IOException {
         // add a new sale to the customer
         HtmlAnchor addSaleLink = page.getAnchorByHref("addSale.html");
         HtmlPage nextPage = (HtmlPage) addSaleLink.openLinkInNewWindow();
 
         // check if title is the one expected
-        Assert.assertEquals("New Sale", nextPage.getTitleText());
+        assertEquals("New Sale", nextPage.getTitleText());
         // get the page first form and place data in the form
         HtmlForm addSaleForm = nextPage.getForms().get(0);
         addSaleForm.getInputByName("customerVat").setValueAttribute(vat);

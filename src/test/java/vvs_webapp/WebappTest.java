@@ -2,14 +2,17 @@ package vvs_webapp;
 
 import com.gargoylesoftware.htmlunit.*;
 import com.gargoylesoftware.htmlunit.html.*;
+import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -22,11 +25,6 @@ public class WebappTest {
         "108136728",
         "108136736",
         "108136744",
-        "108136752",
-        "108136779",
-        "108136787",
-        "108136795",
-        "108136809",
     };
 
     private static final String CUSTOMER_VAT = "503183504";
@@ -76,7 +74,6 @@ public class WebappTest {
         final String DOOR = "12";
         final String POSTAL_CODE = "123-456";
         final String LOCALITY = "locality";
-
         // check the list of the customer's addresses
         HtmlPage customerInfoPage = WebappUtils.getCustomerInfoPage(CUSTOMER_VAT);
         List<DomElement> addressListElements = customerInfoPage.getElementsById("address-list");
@@ -86,20 +83,7 @@ public class WebappTest {
         }
 
         // add address to the customer
-        HtmlAnchor addAddressLink = page.getAnchorByHref("addAddressToCustomer.html");
-        HtmlPage nextPage = (HtmlPage) addAddressLink.openLinkInNewWindow();
-        // check if title is the one expected
-        assertEquals("Enter Address", nextPage.getTitleText());
-        // get the page first form:
-        HtmlForm addAddressForm = nextPage.getForms().get(0);
-        // place data in the form
-        addAddressForm.getInputByName("vat").setValueAttribute(CUSTOMER_VAT);
-        addAddressForm.getInputByName("address").setValueAttribute(ADDRESS);
-        addAddressForm.getInputByName("door").setValueAttribute(DOOR);
-        addAddressForm.getInputByName("postalCode").setValueAttribute(POSTAL_CODE);
-        addAddressForm.getInputByName("locality").setValueAttribute(LOCALITY);
-        // submit form
-        HtmlPage reportPage = addAddressForm.getInputByName("submit").click();
+        HtmlPage reportPage = WebappUtils.addAddressToCustomer(CUSTOMER_VAT, ADDRESS, DOOR, POSTAL_CODE, LOCALITY, page);
 
         // check if the report page includes the proper values
         String textReportPage = reportPage.asText();
@@ -223,15 +207,8 @@ public class WebappTest {
      */
     @Test
     public void closeSaleTest() throws Exception {
-        // get existing sales of the customer
-        List<String> existingSales = WebappUtils.getExistingSaleIds(CUSTOMER_VAT);
-        // add new sale
-        WebappUtils.addSaleToCustomer(CUSTOMER_VAT, page);
-        // get updated sales of the customer
-        HtmlPage updatedCustomerSalePage = WebappUtils.getCustomerSalePage(CUSTOMER_VAT);
-        HtmlTable saleList = updatedCustomerSalePage.getHtmlElementById("sale-list");
-        // check the added sale status (OPEN)
-        HtmlTableRow addedSale = getAddedSale(saleList, existingSales);
+        // add sale and check the status (OPEN)
+        HtmlTableRow addedSale = addAndGetSale(CUSTOMER_VAT);
         assertNotNull("Did not find the added sale.", addedSale);
         assertEquals(SALE_STATUS_OPEN, addedSale.getCell(3).asText());
         String addedSaleId = addedSale.getCell(0).asText();
@@ -255,13 +232,64 @@ public class WebappTest {
         fail("Did not find the closed sale.");
     }
 
+    private HtmlTableRow addAndGetSale(String vat) throws IOException {
+        // get existing sales of the customer
+        List<String> existingSales = WebappUtils.getExistingSaleIds(vat);
+        // add new sale
+        WebappUtils.addSaleToCustomer(vat, page);
+        // get updated sales of the customer
+        HtmlPage updatedCustomerSalePage = WebappUtils.getCustomerSalePage(vat);
+        return getAddedSale(updatedCustomerSalePage.getHtmlElementById("sale-list"), existingSales);
+    }
+
     /**
      * After creating a new customer, a new sale for them and inserting a delivery for that sale, the sale delivery
      * contains all expected information. All intermediate pages have the expected information.
      */
     @Test
     public void saleDeliveryTest() throws Exception {
+        // add sale
+        HtmlTableRow addedSale = addAndGetSale(CUSTOMER_VAT);
+        assertNotNull("Did not find the added sale.", addedSale);
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new NameValuePair("vat", CUSTOMER_VAT));
+        // add address to make sure there is at least one
+        WebappUtils.addAddressToCustomer(CUSTOMER_VAT, "addr", "d", "post", "loc", page);
+        // get existing sale deliveries
+        List<String> existingDeliveryIds = WebappUtils.getExistingDeliveryIds(CUSTOMER_VAT);
 
+        HtmlPage addSaleDeliveryPage =
+            WebappUtils.getPage(new URL(WebappTest.APPLICATION_URL + "AddSaleDeliveryPageController"), params);
+        String addressId = addSaleDeliveryPage.<HtmlTable>getHtmlElementById("address-list").getRow(1).getCell(0).asText();
+        // check if addedSaleId is in the list
+        String addedSaleId = addedSale.getCell(0).asText();
+        HtmlTable saleTable = addSaleDeliveryPage.getHtmlElementById("sale-list");
+        List<String> saleIds = saleTable.getRows().subList(1, saleTable.getRowCount()).stream()
+            .map(r -> r.getCell(0).asText())
+            .collect(Collectors.toList());
+        assertTrue(saleIds.contains(addedSaleId));
+
+        // add sale delivery
+        HtmlForm deliveryForm = addSaleDeliveryPage.getForms().get(0);
+        deliveryForm.getInputByName("addr_id").setValueAttribute(addressId);
+        deliveryForm.getInputByName("sale_id").setValueAttribute(addedSaleId);
+        deliveryForm.getInputByName("submit").click();
+
+        // get current delivery ids and compare with initial ones
+        List<String> updatedDeliveryIds = WebappUtils.getExistingDeliveryIds(CUSTOMER_VAT);
+        updatedDeliveryIds.removeAll(existingDeliveryIds);
+        assertEquals(1, updatedDeliveryIds.size());
+
+        // check new entry in delivery table
+        HtmlTable saleDeliveryTable = WebappUtils.getPage(new URL(WebappTest.APPLICATION_URL + "GetSaleDeliveryPageController"), params).getHtmlElementById("sale-delivery-list");
+        String addedDeliveryId = updatedDeliveryIds.get(0);
+        List<HtmlTableRow> deliveries = saleDeliveryTable.getRows().stream()
+            .filter(r -> r.getCell(0).asText().equals(addedDeliveryId))
+            .collect(Collectors.toList());
+        assertEquals(1, deliveries.size());
+
+        assertEquals(addedSaleId, deliveries.get(0).getCell(1).asText());
+        assertEquals(addressId, deliveries.get(0).getCell(2).asText());
     }
 }
 

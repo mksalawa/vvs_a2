@@ -18,7 +18,7 @@
 <br>
 <div class="w3-container w3-blue-grey w3-center w3-allerta" id="body">
 <c:if test = "${salesDeliveryHelper.getSalesDelivery().size() > 0}">
-	<table class="w3-table w3-bordered">
+	<table class="w3-table w3-bordered"  id="sale-delivery-list">
 	   <tr class="w3-black">
 			<th>Id</th>
 			<th>Sale Id</th>
