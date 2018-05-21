@@ -17,6 +17,11 @@ import com.ninja_squad.dbsetup.operation.Operation;
 import static vvs_dbsetup.DBSetupUtils.*;
 import webapp.services.*;
 
+/**
+ * Tests the expected behavior of Deliveries interactions with the database
+ * @author fc45701
+ * @author fc52214
+ */	
 public class DeliveryDBTest {
 
 	private static Destination dataSource;
@@ -46,19 +51,19 @@ public class DeliveryDBTest {
 		
 	}
     
+    private boolean hasDelivery(int vat, int delivery_id) throws ApplicationException {
+        List<SaleDeliveryDTO> deliveries = SaleService.INSTANCE.getSalesDeliveryByVat(vat).sales_delivery;
+        for(SaleDeliveryDTO delivery: deliveries)
+            if(delivery.id == delivery_id)
+                return true;
+        return false;
+    }
+    
     @Test
-    public void queryDeliveryNumberTest() throws ApplicationException {
-    	// read-only test: unnecessary to re-launch setup after test has been run
-    	dbSetupTracker.skipNextLaunch();
-    	
-    	int expected = NUM_INIT_DELIVERIES;
-    	int actual = 0;
-		
-		List<CustomerDTO> customers = CustomerService.INSTANCE.getAllCustomers().customers;
-		for(CustomerDTO customer: customers)
-			actual += SaleService.INSTANCE.getSalesDeliveryByVat(customer.vat).sales_delivery.size();
-		
-		assertEquals(expected, actual);
+    public void addDeliveryTest() throws ApplicationException{
+        assumeFalse(hasDelivery(197672337, 3));
+        SaleService.INSTANCE.addSaleDelivery(1, 1);
+        assertTrue(hasDelivery(197672337, 3));
     }
     
     @Test

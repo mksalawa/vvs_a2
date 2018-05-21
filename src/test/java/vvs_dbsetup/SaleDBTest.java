@@ -16,6 +16,13 @@ import com.ninja_squad.dbsetup.operation.Operation;
 import static vvs_dbsetup.DBSetupUtils.*;
 import webapp.services.*;
 
+import static org.junit.Assume.*;
+
+/**
+ * Tests the expected behavior of Sales interactions with the database
+ * @author fc45701
+ * @author fc52214
+ */	
 public class SaleDBTest {
 
 	private static Destination dataSource;
@@ -59,6 +66,18 @@ public class SaleDBTest {
 		
 		assertEquals(expected, actual);
     }
+    
+    @Test
+    public void addSaleToCustomerTest() throws ApplicationException {
+    	int vat = 197672337;
+    	assumeTrue(hasClient(vat));
+    	int init = SaleService.INSTANCE.getSaleByCustomerVat(vat).sales.size();
+        SaleService.INSTANCE.addSale(vat);
+        assertEquals("Size of adding sales to Customer should increment",init + 1,
+        		SaleService.INSTANCE.getSaleByCustomerVat(vat).sales.size());
+      
+    }
+    
     
     /**
 	 * f) adding a new sale increases the total number of all sales by one

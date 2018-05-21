@@ -124,13 +124,4 @@ public class CustomersDBTest {
 				.INSTANCE.getSaleByCustomerVat(vat).sales.size());
 	}
 	
-	private static boolean hasClient(int vat) throws ApplicationException {	
-		CustomersDTO customersDTO = CustomerService.INSTANCE.getAllCustomers();
-		
-		for(CustomerDTO customer : customersDTO.customers)
-			if (customer.vat == vat)
-				return true;			
-		return false;
-	}
-	
 }

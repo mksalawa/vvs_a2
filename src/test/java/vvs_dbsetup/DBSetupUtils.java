@@ -108,5 +108,14 @@ public class DBSetupUtils {
 		INSERT_CUSTOMER_SALE_DELIVERY_DATA = sequenceOf(insertCustomers, insertAddresses, insertSales,  insertDeliveries);
 	}
 	
+	public static boolean hasClient(int vat) throws ApplicationException {	
+		CustomersDTO customersDTO = CustomerService.INSTANCE.getAllCustomers();
+		
+		for(CustomerDTO customer : customersDTO.customers)
+			if (customer.vat == vat)
+				return true;			
+		return false;
+	}
+	
 }
 
