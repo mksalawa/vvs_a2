@@ -7,7 +7,7 @@
 <HEAD>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <link rel="stylesheet" type="text/css" href="resources/app.css" />
-<link rel="stylesheet" href="resource/css.css">
+<link rel="stylesheet" href="resources/css.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Allerta+Stencil">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <TITLE>Enter Sale Id</TITLE>
@@ -17,23 +17,24 @@
         <P>Close Sale</P>
     </div>
     <div class="w3-container w3-blue-grey w3-center w3-allerta" id="body">
-<FORM ACTION="UpdateSaleStatusPageControler" METHOD="POST">
+<FORM ACTION="UpdateSaleStatusPageController" METHOD="POST">
 <P>Please enter sale's id:</P>
-                <INPUT  class="w3-btn w3-white w3-border w3-round-large" TYPE="TEXT" NAME="id"> <INPUT  class="w3-button w3-black w3-round-large w3-allerta" TYPE="SUBMIT" VALUE="Close Sale" id="botao1">
+    <INPUT  class="w3-btn w3-white w3-border w3-round-large" TYPE="TEXT" NAME="id">
+	<INPUT  class="w3-button w3-black w3-round-large w3-allerta" TYPE="SUBMIT" VALUE="Close Sale" id="botao1" name="submit">
                 <br>
                 <br>
                 <br>
                 <br>
 </FORM>
 <c:if test = "${salesHelper.getSales().size() > 0}">
-	<table class="w3-table w3-bordered">
+	<table class="w3-table w3-bordered" id="sale-list">
 	<tr class="w3-black">
 		<th>Id</th>
 		<th>Date</th>
 		<th>Total</th>
 		<th>Status</th>
 		<th>Customer Vat Number</th>
-	<tr class="w3-blue-grey">
+	<%--<tr class="w3-blue-grey">--%>
 	<c:forEach var="sales" items="${salesHelper.getSales()}">
 		<tr>
 			<td>${sales.id}</td>

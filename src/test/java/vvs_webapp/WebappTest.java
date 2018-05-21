@@ -2,14 +2,12 @@ package vvs_webapp;
 
 import com.gargoylesoftware.htmlunit.*;
 import com.gargoylesoftware.htmlunit.html.*;
-import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +36,6 @@ public class WebappTest {
     private static final String SALE_STATUS_CLOSED = "C";
 
     private static HtmlPage page;
-    private final WebappUtils webappUtils = new WebappUtils();
 
     @SuppressWarnings("Duplicates")
     @BeforeClass
@@ -61,12 +58,12 @@ public class WebappTest {
 
     @Before
     public void setUp() throws Exception {
-        webappUtils.addCustomer(CUSTOMER_VAT, CUSTOMER_DESIGNATION, CUSTOMER_PHONE, page);
+        WebappUtils.addCustomer(CUSTOMER_VAT, CUSTOMER_DESIGNATION, CUSTOMER_PHONE, page);
     }
 
     @After
     public void tearDown() throws Exception {
-        webappUtils.removeCustomer(CUSTOMER_VAT, page);
+        WebappUtils.removeCustomer(CUSTOMER_VAT, page);
     }
 
     /**
@@ -81,7 +78,7 @@ public class WebappTest {
         final String LOCALITY = "locality";
 
         // check the list of the customer's addresses
-        HtmlPage customerInfoPage = webappUtils.getCustomerInfoPage(CUSTOMER_VAT);
+        HtmlPage customerInfoPage = WebappUtils.getCustomerInfoPage(CUSTOMER_VAT);
         List<DomElement> addressListElements = customerInfoPage.getElementsById("address-list");
         int INITIAL_ROW_COUNT = 0;
         if (!addressListElements.isEmpty()) {
@@ -96,7 +93,7 @@ public class WebappTest {
         // get the page first form:
         HtmlForm addAddressForm = nextPage.getForms().get(0);
         // place data in the form
-        addAddressForm.getInputByName("vat").setValueAttribute(String.valueOf(CUSTOMER_VAT));
+        addAddressForm.getInputByName("vat").setValueAttribute(CUSTOMER_VAT);
         addAddressForm.getInputByName("address").setValueAttribute(ADDRESS);
         addAddressForm.getInputByName("door").setValueAttribute(DOOR);
         addAddressForm.getInputByName("postalCode").setValueAttribute(POSTAL_CODE);
@@ -106,14 +103,14 @@ public class WebappTest {
 
         // check if the report page includes the proper values
         String textReportPage = reportPage.asText();
-        assertTrue(textReportPage.contains(String.valueOf(CUSTOMER_VAT)));
+        assertTrue(textReportPage.contains(CUSTOMER_VAT));
         assertTrue(textReportPage.contains(ADDRESS));
         assertTrue(textReportPage.contains(DOOR));
         assertTrue(textReportPage.contains(POSTAL_CODE));
         assertTrue(textReportPage.contains(LOCALITY));
 
         // check the list of the customer's addresses
-        HtmlPage updatedCustomerInfoPage = webappUtils.getCustomerInfoPage(CUSTOMER_VAT);
+        HtmlPage updatedCustomerInfoPage = WebappUtils.getCustomerInfoPage(CUSTOMER_VAT);
 
         HtmlTable addressTable = updatedCustomerInfoPage.getHtmlElementById("address-list");
         List<HtmlTableRow> rows = addressTable.getRows();
@@ -135,7 +132,6 @@ public class WebappTest {
      */
     @Test
     public void insertNewCustomersTest() throws Exception {
-
         // make sure the customers to be added are not in the DB
         // PROBLEM: due to caching, the cleanup of the DB at the end of the test does not work if these are executed.
         //          Manual cache clearing did not solve the issue.
@@ -150,9 +146,9 @@ public class WebappTest {
         String CUSTOMER_0_NAME = "John Snow";
         String CUSTOMER_1_NAME = "John Brown";
         String CUSTOMER_2_NAME = "Joe Black";
-        webappUtils.addCustomer(VALID_VATS[0], CUSTOMER_0_NAME, CUSTOMER_PHONE, page);
-        webappUtils.addCustomer(VALID_VATS[1], CUSTOMER_1_NAME, CUSTOMER_PHONE, page);
-        webappUtils.addCustomer(VALID_VATS[2], CUSTOMER_2_NAME, CUSTOMER_PHONE, page);
+        WebappUtils.addCustomer(VALID_VATS[0], CUSTOMER_0_NAME, CUSTOMER_PHONE, page);
+        WebappUtils.addCustomer(VALID_VATS[1], CUSTOMER_1_NAME, CUSTOMER_PHONE, page);
+        WebappUtils.addCustomer(VALID_VATS[2], CUSTOMER_2_NAME, CUSTOMER_PHONE, page);
 
         // get all customers again
         HtmlPage updatedAllCustomersPage = (HtmlPage) page.getAnchorByHref("GetAllCustomersPageController").openLinkInNewWindow();
@@ -168,9 +164,9 @@ public class WebappTest {
         assertEquals("Did not find all added customers.", 3, foundCustomers.size());
 
         // cleanup - for some reason not working??? caching pages?
-        webappUtils.removeCustomer(VALID_VATS[0], page);
-        webappUtils.removeCustomer(VALID_VATS[1], page);
-        webappUtils.removeCustomer(VALID_VATS[2], page);
+        WebappUtils.removeCustomer(VALID_VATS[0], page);
+        WebappUtils.removeCustomer(VALID_VATS[1], page);
+        WebappUtils.removeCustomer(VALID_VATS[2], page);
     }
 
     private void checkCustomerRow(int index, String customerName, String customerPhone, HtmlTableRow customerRow,
@@ -193,37 +189,33 @@ public class WebappTest {
     @Test
     public void newSaleIsOpenTest() throws Exception {
         // get existing sales of the customer
-        HtmlPage customerSalePage = webappUtils.getCustomerSalePage(CUSTOMER_VAT);
-        List<String> existingSales = new ArrayList<>();
-        List<DomElement> sales = customerSalePage.getElementsById("sale-list");
-        if (!sales.isEmpty()) {
-            HtmlTable saleList = customerSalePage.getHtmlElementById("sale-list");
-            // ignore the title row
-            for (int i = 1; i < saleList.getRowCount(); i++) {
-                existingSales.add(saleList.getRow(i).getCell(0).asText());
-            }
-        }
+        List<String> existingSales = WebappUtils.getExistingSaleIds(CUSTOMER_VAT);
 
         // add new sale
-        webappUtils.addSaleToCustomer(String.valueOf(CUSTOMER_VAT), page);
-
+        WebappUtils.addSaleToCustomer(CUSTOMER_VAT, page);
         // get updated sales of the customer
-        HtmlPage updatedCustomerSalePage = webappUtils.getCustomerSalePage(CUSTOMER_VAT);
+        HtmlPage updatedCustomerSalePage = WebappUtils.getCustomerSalePage(CUSTOMER_VAT);
         HtmlTable saleList = updatedCustomerSalePage.getHtmlElementById("sale-list");
         int salesCount = saleList.getRowCount() - 1; // ignore title row
         assertEquals(1 + existingSales.size(), salesCount);
 
+        // check the added sale status
+        HtmlTableRow addedSale = getAddedSale(saleList, existingSales);
+        assertNotNull("Did not find the added sale.", addedSale);
+        assertEquals(CUSTOMER_VAT, addedSale.getCell(4).asText());   // Customer VAT
+        assertEquals(SALE_STATUS_OPEN, addedSale.getCell(3).asText()); // Status
+        assertEquals("0.0", addedSale.getCell(2).asText()); // Total
+    }
+
+    private HtmlTableRow getAddedSale(HtmlTable saleList, List<String> existingSales) {
         for (int i = 1; i < saleList.getRowCount(); i++) {
             HtmlTableRow saleRow = saleList.getRow(i);
             String id = saleRow.getCell(0).asText();
             if (!existingSales.contains(id)) {
-                assertEquals(CUSTOMER_VAT, saleRow.getCell(4).asText());   // Customer VAT
-                assertEquals(SALE_STATUS_OPEN, saleRow.getCell(3).asText()); // Status
-                assertEquals("0.0", saleRow.getCell(2).asText()); // Total
-                return;
+                return saleList.getRow(i);
             }
         }
-        fail("Did not find the added sale.");
+        return null;
     }
 
     /**
@@ -231,19 +223,46 @@ public class WebappTest {
      */
     @Test
     public void closeSaleTest() throws Exception {
+        // get existing sales of the customer
+        List<String> existingSales = WebappUtils.getExistingSaleIds(CUSTOMER_VAT);
+        // add new sale
+        WebappUtils.addSaleToCustomer(CUSTOMER_VAT, page);
+        // get updated sales of the customer
+        HtmlPage updatedCustomerSalePage = WebappUtils.getCustomerSalePage(CUSTOMER_VAT);
+        HtmlTable saleList = updatedCustomerSalePage.getHtmlElementById("sale-list");
+        // check the added sale status (OPEN)
+        HtmlTableRow addedSale = getAddedSale(saleList, existingSales);
+        assertNotNull("Did not find the added sale.", addedSale);
+        assertEquals(SALE_STATUS_OPEN, addedSale.getCell(3).asText());
+        String addedSaleId = addedSale.getCell(0).asText();
 
+        // close the sale
+        HtmlPage saleStatusPage = (HtmlPage) page.getAnchorByHref("UpdateSaleStatusPageController").openLinkInNewWindow();
+        HtmlForm removeSaleForm = saleStatusPage.getForms().get(0);
+        removeSaleForm.getInputByName("id").setValueAttribute(addedSaleId);
+        removeSaleForm.getInputByName("submit").click();
+
+        // go to sale list again
+        saleStatusPage = (HtmlPage) page.getAnchorByHref("UpdateSaleStatusPageController").openLinkInNewWindow();
+        HtmlTable updatedSaleList = saleStatusPage.getHtmlElementById("sale-list");
+        // check the status of the sale (CLOSED)
+        for (HtmlTableRow saleRow : updatedSaleList.getRows()) {
+            if (saleRow.getCells().size() > 0 && saleRow.getCell(0).asText().equals(addedSaleId)) {
+                assertEquals("Closed sale " + addedSaleId + " should have status closed.", SALE_STATUS_CLOSED, saleRow.getCell(3).asText());
+                return;
+            }
+        }
+        fail("Did not find the closed sale.");
     }
 
     /**
-     * After creating a new customer and a new sale for them, inserting a delivery for that sale, the sale delivery
+     * After creating a new customer, a new sale for them and inserting a delivery for that sale, the sale delivery
      * contains all expected information. All intermediate pages have the expected information.
      */
     @Test
     public void saleDeliveryTest() throws Exception {
 
     }
-
-
 }
 
 

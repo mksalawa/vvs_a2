@@ -11,8 +11,8 @@ import webapp.services.ApplicationException;
 import webapp.services.SaleService;
 import webapp.services.SalesDTO;
 
-@WebServlet("/UpdateSaleStatusPageControler")
-public class UpdateSaleStatusPageControler extends PageController{
+@WebServlet("/UpdateSaleStatusPageController")
+public class UpdateSaleStatusPageController extends PageController{
 	private static final long serialVersionUID = 1L;
 
 	@Override

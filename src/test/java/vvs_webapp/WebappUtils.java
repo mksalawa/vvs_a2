@@ -4,10 +4,7 @@ import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.HttpMethod;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebRequest;
-import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlInput;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.html.*;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import org.junit.Assert;
 
@@ -20,7 +17,7 @@ public class WebappUtils {
     public WebappUtils() {
     }
 
-    public HtmlPage getPage(URL url, List<NameValuePair> reqParams) throws IOException {
+    public static HtmlPage getPage(URL url, List<NameValuePair> reqParams) throws IOException {
         HtmlPage page;
         // Build a GET request
         try (final WebClient webClient = new WebClient(BrowserVersion.getDefault())) {
@@ -32,19 +29,33 @@ public class WebappUtils {
         return page;
     }
 
-    public HtmlPage getCustomerInfoPage(String vat) throws IOException {
-        List<NameValuePair> params = new ArrayList<NameValuePair>();
+    public static HtmlPage getCustomerInfoPage(String vat) throws IOException {
+        List<NameValuePair> params = new ArrayList<>();
         params.add(new NameValuePair("vat", vat));
         return getPage(new URL(WebappTest.APPLICATION_URL + "GetCustomerPageController"), params);
     }
 
-    public HtmlPage getCustomerSalePage(String vat) throws IOException {
-        List<NameValuePair> params = new ArrayList<NameValuePair>();
+    public static HtmlPage getCustomerSalePage(String vat) throws IOException {
+        List<NameValuePair> params = new ArrayList<>();
         params.add(new NameValuePair("customerVat", vat));
         return getPage(new URL(WebappTest.APPLICATION_URL + "GetSalePageController"), params);
     }
 
-    public HtmlPage addCustomer(String vat, String designation, String phone, HtmlPage page) throws Exception {
+    public static List<String> getExistingSaleIds(String vat) throws IOException {
+        HtmlPage customerSalePage = WebappUtils.getCustomerSalePage(vat);
+        List<String> existingSales = new ArrayList<>();
+        List<DomElement> sales = customerSalePage.getElementsById("sale-list");
+        if (!sales.isEmpty()) {
+            HtmlTable saleList = customerSalePage.getHtmlElementById("sale-list");
+            // ignore the title row
+            for (int i = 1; i < saleList.getRowCount(); i++) {
+                existingSales.add(saleList.getRow(i).getCell(0).asText());
+            }
+        }
+        return existingSales;
+    }
+
+    public static HtmlPage addCustomer(String vat, String designation, String phone, HtmlPage page) throws Exception {
         // get a specific link
         HtmlAnchor addCustomerLink = page.getAnchorByHref("addCustomer.html");
         // click on it
@@ -66,7 +77,7 @@ public class WebappUtils {
         return addCustomerForm.getInputByName("submit").click();
     }
 
-    public HtmlPage removeCustomer(String vat, HtmlPage page) throws Exception {
+    public static HtmlPage removeCustomer(String vat, HtmlPage page) throws Exception {
         // at index, goto Remove case and remove the previous client
         HtmlAnchor removeCustomerLink = page.getAnchorByHref("RemoveCustomerPageController");
         HtmlPage nextPage = (HtmlPage) removeCustomerLink.openLinkInNewWindow();
@@ -76,7 +87,7 @@ public class WebappUtils {
         return removeCustomerForm.getInputByName("submit").click();
     }
 
-    public HtmlPage addSaleToCustomer(String vat, HtmlPage page) throws IOException {
+    public static HtmlPage addSaleToCustomer(String vat, HtmlPage page) throws IOException {
         // add a new sale to the customer
         HtmlAnchor addSaleLink = page.getAnchorByHref("addSale.html");
         HtmlPage nextPage = (HtmlPage) addSaleLink.openLinkInNewWindow();
