@@ -19,6 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import webapp.persistence.PersistenceException;
 import webapp.services.*;
 
+/**
+ * Tests the expected behavior of Customers interactions with the database
+ * @author fc45701
+ * @author fc52214
+ */		
 public class CustomersDBTest {
 
 	private static Destination dataSource;
@@ -37,7 +42,7 @@ public class CustomersDBTest {
 
 		Operation initDBOperations = Operations.sequenceOf(
 			  DELETE_ALL
-			, INSERT_CUSTOMER_ADDRESS_DATA
+			, INSERT_CUSTOMER_SALE_DATA
 			);
 		
 		DbSetup dbSetup = new DbSetup(dataSource, initDBOperations);
@@ -53,29 +58,22 @@ public class CustomersDBTest {
 	 */
 	@Test
 	public void noDuplicateVATTest() throws ApplicationException {
-		int vat = 503183504;
-		//assumeTrue(hasClient(vat));
-		assertFalse(hasClient(vat));
-		CustomerService.INSTANCE.addCustomer(vat, "TESTE", 217500001);
-		//assertTrue(hasClient(vat));
+		int vat = 197672337;
+		assumeTrue(hasClient(vat));
 		assertThrows(Exception.class, () -> 
 			CustomerService.INSTANCE.addCustomer(vat, "FCUL", 217500000));
 	}
 	/**
 	 * b) after the update of a costumer contact, 
 	 * 	  the information should be properly saved
-	 *	TODO
 	 */
 	@Test
 	public void updatingContactSavesTheChangesTest() throws ApplicationException {
-		int vat = 503183504;
-		int phoneNumber = 917774773;
-		assertFalse(hasClient(vat));
-		CustomerService.INSTANCE.addCustomer(vat, "TESTE", phoneNumber + 1);
-		assertTrue(CustomerService.INSTANCE.getCustomerByVat(vat)
-				.phoneNumber == phoneNumber + 1);
-		CustomerService.INSTANCE.updateCustomerPhone(vat, phoneNumber);
-		assertTrue(CustomerService.INSTANCE.getCustomerByVat(vat).phoneNumber == phoneNumber);
+		int vat = 197672337;
+		CustomerDTO cust = CustomerService.INSTANCE.getCustomerByVat(vat);
+		assumeTrue(hasClient(vat));
+		CustomerService.INSTANCE.updateCustomerPhone(vat, cust.phoneNumber + 1);
+		assertTrue(CustomerService.INSTANCE.getCustomerByVat(vat).phoneNumber == cust.phoneNumber + 1);
 	}
 	
 	/**
@@ -84,7 +82,7 @@ public class CustomersDBTest {
 
 	@Test
 	public void deletingAllCustomersTest() throws ApplicationException {
-		assertTrue(CustomerService.INSTANCE.getAllCustomers().customers.size() != 0);
+		assertTrue(CustomerService.INSTANCE.getAllCustomers().customers.size() > 0);
 		deleteAllCostumers();
 		assertTrue(CustomerService.INSTANCE.getAllCustomers().customers.size() == 0);
 	}
@@ -92,18 +90,15 @@ public class CustomersDBTest {
 	/**
 	 * d) after deleting a certain costumer,
 	 *    it's possible to add ir back without lifting exceptions
-	 *    TODO
 	 */
 	@Test
 	public void addingDeletedCostumerTest() throws ApplicationException {
-		int vat = 503183504;
-		String des = "FCUL";
-		int phoneNumber = 217500000;
-		CustomerService.INSTANCE.addCustomer(vat, des, phoneNumber);
-		assertTrue(hasClient(vat));
+		int vat = 197672337;
+		assumeTrue(hasClient(vat));
+		CustomerDTO cust = CustomerService.INSTANCE.getCustomerByVat(vat);
 		CustomerService.INSTANCE.removeCustomer(vat);
 		assertFalse(hasClient(vat));
-		CustomerService.INSTANCE.addCustomer(vat, des, phoneNumber);
+		CustomerService.INSTANCE.addCustomer(cust.vat, cust.designation, cust.phoneNumber);
 		assertTrue(hasClient(vat));
 	}
 	
@@ -117,20 +112,25 @@ public class CustomersDBTest {
 	/**
 	 * e)After deleting a certain customer, its sales should be
 	 *  removed from the database
-	 *  TODO -> The sales are not removed from the database!!!
 	 */
 	@Test
-	public void salesRemovedTest() throws ApplicationException {
-		int vat = 503183504;
-		assertFalse(hasClient(vat));
-		CustomerService.INSTANCE.addCustomer(vat, "FCUL", 217500000);
+	public void removeCustomerRemoveSalesTest() throws ApplicationException {
+		int vat = 197672337;
+		assumeTrue(hasClient(vat));
+		assumeTrue(SaleService.INSTANCE.getSaleByCustomerVat(vat).sales.size() > 0);
 		SaleService.INSTANCE.addSale(vat);
-		assertTrue(SaleService.INSTANCE.getSaleByCustomerVat(vat).sales.size() == 1);
 		CustomerService.INSTANCE.removeCustomer(vat);
-		assertFalse(hasClient(vat));
-		//assertThrows(Exception.class, () -> 
-		//	SaleService.INSTANCE.getSaleByCustomerVat(vat));
-		assertEquals("Size should be zero",0,SaleService.INSTANCE.getSaleByCustomerVat(vat).sales.size());
+		assertEquals("Size should be zero after deletion",0,SaleService
+				.INSTANCE.getSaleByCustomerVat(vat).sales.size());
+	}
+	
+	private static boolean hasClient(int vat) throws ApplicationException {	
+		CustomersDTO customersDTO = CustomerService.INSTANCE.getAllCustomers();
+		
+		for(CustomerDTO customer : customersDTO.customers)
+			if (customer.vat == vat)
+				return true;			
+		return false;
 	}
 	
 }
