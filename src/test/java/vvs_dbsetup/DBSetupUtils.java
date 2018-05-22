@@ -15,15 +15,6 @@ import webapp.services.CustomerDTO;
 import webapp.services.CustomerService;
 import webapp.services.CustomersDTO;
 
-/** References:
- *
- * HOME: http://dbsetup.ninja-squad.com/index.html
- * API: http://dbsetup.ninja-squad.com/apidoc/2.1.0/index.html
- * Best practices: http://dbunit.sourceforge.net/bestpractices.html
- * 
- * @author jpn
- */
-@SuppressWarnings("all")
 public class DBSetupUtils {
 	
 	public static final String DB_URL = "jdbc:hsqldb:file:src/main/resources/data/hsqldb/cssdb";
