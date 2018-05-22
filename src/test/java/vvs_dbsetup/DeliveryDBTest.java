@@ -61,9 +61,8 @@ public class DeliveryDBTest {
     
     @Test
     public void addDeliveryTest() throws ApplicationException{
-    	int vat = 168027852;
-        assumeFalse(hasDelivery(vat, 2));
-    	assertTrue(SaleService.INSTANCE.getSalesDeliveryByVat(vat).sales_delivery.size() == 0);
+    	int vat = getFirstCustomerVat();
+        assumeFalse(hasDelivery(vat, 3));
         SaleService.INSTANCE.addSaleDelivery(1, 3);
         assertTrue(hasDelivery(197672337, 1));
     }

@@ -69,7 +69,7 @@ public class SaleDBTest {
     
     @Test
     public void addSaleToCustomerTest() throws ApplicationException {
-    	int vat = 197672337;
+    	int vat = getFirstCustomerVat();
     	assumeTrue(hasClient(vat));
     	int init = SaleService.INSTANCE.getSaleByCustomerVat(vat).sales.size();
         SaleService.INSTANCE.addSale(vat);
@@ -84,7 +84,8 @@ public class SaleDBTest {
 	 */
     @Test
     public void addSaleSizeTest() throws ApplicationException {
-    	SaleService.INSTANCE.addSale(197672337);
+    	int vat = getFirstCustomerVat();
+    	SaleService.INSTANCE.addSale(vat);
     	
     	int size = 0;
 		
