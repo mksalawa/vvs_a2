@@ -61,15 +61,16 @@ public class DeliveryDBTest {
     
     @Test
     public void addDeliveryTest() throws ApplicationException{
-        assumeFalse(hasDelivery(197672337, 1));
-    	int vat = 197672337;
-    	assumeFalse(SaleService.INSTANCE.getSalesDeliveryByVat(vat).sales_delivery.size() == 0);
-        SaleService.INSTANCE.addSaleDelivery(1, 1);
+    	int vat = 168027852;
+        assumeFalse(hasDelivery(vat, 2));
+    	assertTrue(SaleService.INSTANCE.getSalesDeliveryByVat(vat).sales_delivery.size() == 0);
+        SaleService.INSTANCE.addSaleDelivery(1, 3);
         assertTrue(hasDelivery(197672337, 1));
     }
     
     @Test
     public void addDeliverySizeTest() throws ApplicationException {
+    	
     	SaleService.INSTANCE.addSaleDelivery(1, 1);
     	
     	int size = 0;
