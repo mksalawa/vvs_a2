@@ -132,4 +132,21 @@ public enum SaleService {
 			checkDigitCalc = 0;
 		return checkDigit == checkDigitCalc;
 	}
+	
+	/**
+	 * Implemented so we could remove a sale when a customer is removed from the database
+
+	 */
+    public void removeSaleByVAT(int vat) throws ApplicationException {
+        if (!isValidVAT (vat))
+            throw new ApplicationException ("Invalid VAT number: " + vat);
+        else try {
+            List<SaleRowDataGateway> sales = new SaleRowDataGateway().getAllSales(vat);
+            for(SaleRowDataGateway sale: sales)
+                sale.removeSale();
+        } catch (PersistenceException e) {
+                throw new ApplicationException ("Customer with vat number " + vat + " doesn't exist.", e);
+        }
+    }
+	
 }

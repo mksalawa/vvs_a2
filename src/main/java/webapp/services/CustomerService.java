@@ -105,6 +105,7 @@ public enum CustomerService {
 		else try {
 			CustomerRowDataGateway customer = new CustomerFinder().getCustomerByVATNumber(vat);
 			customer.removeCustomer();
+			SaleService.INSTANCE.removeSaleByVAT(vat);
 		} catch (PersistenceException e) {
 				throw new ApplicationException ("Customer with vat number " + vat + " doesn't exist.", e);
 		}
