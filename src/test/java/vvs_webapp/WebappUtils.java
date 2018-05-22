@@ -33,13 +33,13 @@ public class WebappUtils {
     public static HtmlPage getCustomerInfoPage(String vat) throws IOException {
         List<NameValuePair> params = new ArrayList<>();
         params.add(new NameValuePair("vat", vat));
-        return getPage(new URL(WebappTest.APPLICATION_URL + "GetCustomerPageController"), params);
+        return getPage(new URL(NewAddressTest.APPLICATION_URL + "GetCustomerPageController"), params);
     }
 
     public static HtmlPage getCustomerSalePage(String vat) throws IOException {
         List<NameValuePair> params = new ArrayList<>();
         params.add(new NameValuePair("customerVat", vat));
-        return getPage(new URL(WebappTest.APPLICATION_URL + "GetSalePageController"), params);
+        return getPage(new URL(NewAddressTest.APPLICATION_URL + "GetSalePageController"), params);
     }
 
     public static List<String> getExistingSaleIds(String vat) throws IOException {
@@ -60,7 +60,7 @@ public class WebappUtils {
         List<NameValuePair> params = new ArrayList<>();
         params.add(new NameValuePair("vat", vat));
         HtmlPage saleDeliveryPage =
-            WebappUtils.getPage(new URL(WebappTest.APPLICATION_URL + "GetSaleDeliveryPageController"), params);
+            WebappUtils.getPage(new URL(NewAddressTest.APPLICATION_URL + "GetSaleDeliveryPageController"), params);
         List<String> existingDeliveryIds = new ArrayList<>();
         if (!saleDeliveryPage.getElementsById("sale-delivery-list").isEmpty()) {
             HtmlTable saleDeliveryTable = saleDeliveryPage.getHtmlElementById("sale-delivery-list");
@@ -69,6 +69,27 @@ public class WebappUtils {
                 .collect(Collectors.toList()));
         }
         return existingDeliveryIds;
+    }
+
+    public static HtmlTableRow addAndGetSale(String vat, HtmlPage page) throws IOException {
+        // get existing sales of the customer
+        List<String> existingSales = WebappUtils.getExistingSaleIds(vat);
+        // add new sale
+        WebappUtils.addSaleToCustomer(vat, page);
+        // get updated sales of the customer
+        HtmlPage updatedCustomerSalePage = WebappUtils.getCustomerSalePage(vat);
+        return getAddedSale(updatedCustomerSalePage.getHtmlElementById("sale-list"), existingSales);
+    }
+
+    private static HtmlTableRow getAddedSale(HtmlTable saleList, List<String> existingSales) {
+        for (int i = 1; i < saleList.getRowCount(); i++) {
+            HtmlTableRow saleRow = saleList.getRow(i);
+            String id = saleRow.getCell(0).asText();
+            if (!existingSales.contains(id)) {
+                return saleList.getRow(i);
+            }
+        }
+        return null;
     }
 
     public static HtmlPage addCustomer(String vat, String designation, String phone, HtmlPage page) throws Exception {
