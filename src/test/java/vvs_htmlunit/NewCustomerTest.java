@@ -1,4 +1,4 @@
-package vvs_webapp;
+package vvs_htmlunit;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
