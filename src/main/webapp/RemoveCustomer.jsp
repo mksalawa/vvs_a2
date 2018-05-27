@@ -16,7 +16,7 @@
     <p>Remove Customer</p>
     </div>
     <div class="w3-container w3-blue-grey w3-center w3-allerta" id="body">
-        <FORM ACTION="RemoveCustomerPageController" METHOD="POST">
+        <FORM ACTION="RemoveCustomerPageController" METHOD="POST" name="remove-customer-form">
             <br>
             <P>Please enter customer's vat number:</P>
             <INPUT class="w3-btn w3-white w3-border w3-round-large" TYPE="TEXT" NAME="vat"> 

@@ -25,7 +25,7 @@
 <br>
 <br>
 <c:if test = "${addressesHelper.getAddresses().size() > 0}">
-	<table class="w3-table w3-bordered">
+	<table class="w3-table w3-bordered" id="address-list">
 	<tr class="w3-black">
 		<th>Address</th>
 		<th>Door</th>
