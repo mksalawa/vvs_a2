@@ -70,7 +70,7 @@ public class CloseSaleTest {
 
         // close the sale
         HtmlPage saleStatusPage = (HtmlPage) page.getAnchorByHref("UpdateSaleStatusPageController").openLinkInNewWindow();
-        HtmlForm removeSaleForm = saleStatusPage.getForms().get(0);
+        HtmlForm removeSaleForm = saleStatusPage.getFormByName("close-sale-form");
         removeSaleForm.getInputByName("id").setValueAttribute(addedSaleId);
         removeSaleForm.getInputByName("submit").click();
 

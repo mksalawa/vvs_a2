@@ -90,7 +90,7 @@ public class SaleDeliveryTest {
         assertTrue(saleIds.contains(addedSaleId));
 
         // add sale delivery
-        HtmlForm deliveryForm = addSaleDeliveryPage.getForms().get(0);
+        HtmlForm deliveryForm = addSaleDeliveryPage.getFormByName("add-sale-delivery-form");
         deliveryForm.getInputByName("addr_id").setValueAttribute(addressId);
         deliveryForm.getInputByName("sale_id").setValueAttribute(addedSaleId);
         deliveryForm.getInputByName("submit").click();

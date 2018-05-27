@@ -18,7 +18,7 @@
     </div>
 <div class="w3-container w3-blue-grey w3-center w3-allerta" id="body">
 <br>
-<FORM ACTION="AddSaleDeliveryPageController" METHOD="POST">
+<FORM ACTION="AddSaleDeliveryPageController" METHOD="POST" name="add-sale-delivery-form">
 <P>Please enter address id:</P>
 <br>
 <INPUT class="w3-btn w3-white w3-border w3-round-large" TYPE="TEXT" NAME="addr_id">

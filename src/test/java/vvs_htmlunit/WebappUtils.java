@@ -100,8 +100,7 @@ public class WebappUtils {
         // check if title is the one expected
         assertEquals("Enter Name", nextPage.getTitleText());
 
-        // get the page first form:
-        HtmlForm addCustomerForm = nextPage.getForms().get(0);
+        HtmlForm addCustomerForm = nextPage.getFormByName("add-customer-form");
 
         // place data at form
         HtmlInput vatInput = addCustomerForm.getInputByName("vat");
@@ -119,7 +118,7 @@ public class WebappUtils {
         HtmlAnchor removeCustomerLink = page.getAnchorByHref("RemoveCustomerPageController");
         HtmlPage nextPage = (HtmlPage) removeCustomerLink.openLinkInNewWindow();
 
-        HtmlForm removeCustomerForm = nextPage.getForms().get(0);
+        HtmlForm removeCustomerForm = nextPage.getFormByName("remove-customer-form");
         removeCustomerForm.getInputByName("vat").setValueAttribute(vat);
         return removeCustomerForm.getInputByName("submit").click();
     }
@@ -129,7 +128,7 @@ public class WebappUtils {
         HtmlPage nextPage = (HtmlPage) addAddressLink.openLinkInNewWindow();
         // check if title is the one expected
         assertEquals("Enter Address", nextPage.getTitleText());
-        HtmlForm addAddressForm = nextPage.getForms().get(0);
+        HtmlForm addAddressForm = nextPage.getFormByName("add-address-form");
         // place data in the form
         addAddressForm.getInputByName("vat").setValueAttribute(vat);
         addAddressForm.getInputByName("address").setValueAttribute(address);
@@ -148,7 +147,7 @@ public class WebappUtils {
         // check if title is the one expected
         assertEquals("New Sale", nextPage.getTitleText());
         // get the page first form and place data in the form
-        HtmlForm addSaleForm = nextPage.getForms().get(0);
+        HtmlForm addSaleForm = nextPage.getFormByName("add-sale-form");
         addSaleForm.getInputByName("customerVat").setValueAttribute(vat);
         // submit form
         return addSaleForm.getInputByName("submit").click();
