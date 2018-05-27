@@ -14,6 +14,8 @@ import webapp.services.ApplicationException;
 import webapp.services.CustomerDTO;
 import webapp.services.CustomerService;
 import webapp.services.CustomersDTO;
+import webapp.services.SaleService;
+import webapp.services.SalesDTO;
 
 public class DBSetupUtils {
 	
@@ -98,22 +100,6 @@ public class DBSetupUtils {
 		NUM_INIT_DELIVERIES = insertDeliveries.getRowCount();
 		
 		INSERT_CUSTOMER_SALE_DELIVERY_DATA = sequenceOf(insertCustomers, insertAddresses, insertSales,  insertDeliveries);
-	}
-	
-	public static boolean hasClient(int vat) throws ApplicationException {	
-		CustomersDTO customersDTO = CustomerService.INSTANCE.getAllCustomers();
-		
-		for(CustomerDTO customer : customersDTO.customers)
-			if (customer.vat == vat)
-				return true;			
-		return false;
-	}
-	
-	public static int getFirstCustomerVat() throws ApplicationException{
-		CustomersDTO customersDTO = CustomerService.INSTANCE.getAllCustomers();
-		for(CustomerDTO customer : customersDTO.customers)
-			return customer.vat;		
-		throw new ApplicationException("No customer in the database");
 	}
 	
 }

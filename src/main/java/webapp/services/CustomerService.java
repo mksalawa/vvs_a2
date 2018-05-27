@@ -99,6 +99,22 @@ public enum CustomerService {
 		}
 	}
 	
+	public boolean hasClient(int vat) throws ApplicationException {	
+		CustomersDTO customersDTO = INSTANCE.getAllCustomers();
+		
+		for(CustomerDTO customer : customersDTO.customers)
+			if (customer.vat == vat)
+				return true;			
+		return false;
+	}
+	
+	public int getFirstCustomerVat() throws ApplicationException{
+		CustomersDTO customersDTO = INSTANCE.getAllCustomers();
+		if(customersDTO.customers.size() > 0)
+			return customersDTO.customers.get(0).vat;	
+		throw new ApplicationException("No customer in the database");
+	}
+	
 	public void removeCustomer(int vat) throws ApplicationException {
 		if (!isValidVAT (vat))
 			throw new ApplicationException ("Invalid VAT number: " + vat);

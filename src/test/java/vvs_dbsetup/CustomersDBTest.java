@@ -57,9 +57,9 @@ public class CustomersDBTest {
 	 */
 	@Test
 	public void noDuplicateVATTest() throws ApplicationException {
-		int vat = getFirstCustomerVat();
-		assumeTrue(hasClient(vat));
-		assertThrows(Exception.class, () -> 
+		int vat = CustomerService.INSTANCE.getFirstCustomerVat();
+		assumeTrue(CustomerService.INSTANCE.hasClient(vat));
+		assertThrows(ApplicationException.class, () -> 
 			CustomerService.INSTANCE.addCustomer(vat, "FCUL", 217500000));
 	}
 	/**
@@ -68,9 +68,9 @@ public class CustomersDBTest {
 	 */
 	@Test
 	public void updatingContactSavesTheChangesTest() throws ApplicationException {
-		int vat = getFirstCustomerVat();
+		int vat = CustomerService.INSTANCE.getFirstCustomerVat();
 		CustomerDTO cust = CustomerService.INSTANCE.getCustomerByVat(vat);
-		assumeTrue(hasClient(vat));
+		assumeTrue(CustomerService.INSTANCE.hasClient(vat));
 		CustomerService.INSTANCE.updateCustomerPhone(vat, cust.phoneNumber + 1);
 		assertTrue(CustomerService.INSTANCE.getCustomerByVat(vat).phoneNumber == cust.phoneNumber + 1);
 	}
@@ -81,24 +81,24 @@ public class CustomersDBTest {
 
 	@Test
 	public void deletingAllCustomersTest() throws ApplicationException {
-		assertTrue(CustomerService.INSTANCE.getAllCustomers().customers.size() > 0);
+		assumeTrue(CustomerService.INSTANCE.getAllCustomers().customers.size() > 0);
 		deleteAllCustomers();
 		assertTrue(CustomerService.INSTANCE.getAllCustomers().customers.size() == 0);
 	}
 
 	/**
 	 * d) after deleting a certain Customer,
-	 *    it's possible to add ir back without lifting exceptions
+	 *    it's possible to add it back without lifting exceptions
 	 */
 	@Test
 	public void addingDeletedCustomerTest() throws ApplicationException {
-		int vat = getFirstCustomerVat();
-		assumeTrue(hasClient(vat));
+		int vat = CustomerService.INSTANCE.getFirstCustomerVat();
+		assumeTrue(CustomerService.INSTANCE.hasClient(vat));
 		CustomerDTO cust = CustomerService.INSTANCE.getCustomerByVat(vat);
 		CustomerService.INSTANCE.removeCustomer(vat);
-		assertFalse(hasClient(vat));
+		assertFalse(CustomerService.INSTANCE.hasClient(vat));
 		CustomerService.INSTANCE.addCustomer(cust.vat, cust.designation, cust.phoneNumber);
-		assertTrue(hasClient(vat));
+		assertTrue(CustomerService.INSTANCE.hasClient(vat));
 	}
 	
 	private void deleteAllCustomers() throws ApplicationException{
@@ -114,8 +114,8 @@ public class CustomersDBTest {
 	 */
 	@Test
 	public void removeCustomerRemoveSalesTest() throws ApplicationException {
-		int vat = getFirstCustomerVat();
-		assumeTrue(hasClient(vat));
+		int vat = CustomerService.INSTANCE.getFirstCustomerVat();
+		assumeTrue(CustomerService.INSTANCE.hasClient(vat));
 		assumeTrue(SaleService.INSTANCE.getSaleByCustomerVat(vat).sales.size() > 0);
 		SaleService.INSTANCE.addSale(vat);
 		CustomerService.INSTANCE.removeCustomer(vat);

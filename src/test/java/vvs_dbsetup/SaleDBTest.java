@@ -17,6 +17,7 @@ import static vvs_dbsetup.DBSetupUtils.*;
 import webapp.services.*;
 
 import static org.junit.Assume.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests the expected behavior of Sales interactions with the database
@@ -53,24 +54,17 @@ public class SaleDBTest {
 	}
     
     @Test
-    public void querySaleNumberTest() throws ApplicationException {
-    	// read-only test: unnecessary to re-launch setup after test has been run
-    	dbSetupTracker.skipNextLaunch();
-    	
-    	int expected = NUM_INIT_SALES;
-    	int actual = 0;
-		
-		List<CustomerDTO> customers = CustomerService.INSTANCE.getAllCustomers().customers;
-		for(CustomerDTO customer: customers)
-			actual += SaleService.INSTANCE.getSaleByCustomerVat(customer.vat).sales.size();
-		
-		assertEquals(expected, actual);
+    public void updateNonExistingSaleTest() throws ApplicationException{
+    	int id = 20;
+    	assumeFalse(SaleService.INSTANCE.hasSale(id));
+    	assertThrows(ApplicationException.class, () -> 
+			SaleService.INSTANCE.updateSale(id));
     }
     
     @Test
     public void addSaleToCustomerTest() throws ApplicationException {
-    	int vat = getFirstCustomerVat();
-    	assumeTrue(hasClient(vat));
+    	int vat = CustomerService.INSTANCE.getFirstCustomerVat();
+    	assumeTrue(CustomerService.INSTANCE.hasClient(vat));
     	int init = SaleService.INSTANCE.getSaleByCustomerVat(vat).sales.size();
         SaleService.INSTANCE.addSale(vat);
         assertEquals("Size of adding sales to Customer should increment",init + 1,
@@ -84,7 +78,7 @@ public class SaleDBTest {
 	 */
     @Test
     public void addSaleSizeTest() throws ApplicationException {
-    	int vat = getFirstCustomerVat();
+    	int vat = CustomerService.INSTANCE.getFirstCustomerVat();
     	SaleService.INSTANCE.addSale(vat);
     	
     	int size = 0;

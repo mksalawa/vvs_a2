@@ -51,6 +51,13 @@ public enum SaleService {
 		}
 	}
 	
+	public boolean hasSale(int id) throws ApplicationException{
+		SalesDTO salesDTO = INSTANCE.getAllSales();
+		for(SaleDTO sale : salesDTO.sales)
+			if (sale.id == id)
+				return true;			
+		return false;
+	}
 	
 	public void addSale(int customerVat) throws ApplicationException {
 		try {
