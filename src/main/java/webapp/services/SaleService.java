@@ -141,10 +141,11 @@ public enum SaleService {
 	}
 	
 	/**
-	 * Implemented so we could remove a sale when a customer is removed from the database
-
+	 * Removes sales in the Database given a certain customer vat
+	 * 
+	 * @param vat the customer vat to check
 	 */
-    public void removeSaleByVAT(int vat) throws ApplicationException {
+    public void removeSalesByVAT(int vat) throws ApplicationException {
         if (!isValidVAT (vat))
             throw new ApplicationException ("Invalid VAT number: " + vat);
         else try {
