@@ -51,6 +51,13 @@ public enum SaleService {
 		}
 	}
 	
+	public boolean hasSale(int id) throws ApplicationException{
+		SalesDTO salesDTO = INSTANCE.getAllSales();
+		for(SaleDTO sale : salesDTO.sales)
+			if (sale.id == id)
+				return true;			
+		return false;
+	}
 	
 	public void addSale(int customerVat) throws ApplicationException {
 		try {
@@ -132,4 +139,22 @@ public enum SaleService {
 			checkDigitCalc = 0;
 		return checkDigit == checkDigitCalc;
 	}
+	
+	/**
+	 * Removes sales in the Database given a certain customer vat
+	 * 
+	 * @param vat the customer vat to check
+	 */
+    public void removeSalesByVAT(int vat) throws ApplicationException {
+        if (!isValidVAT (vat))
+            throw new ApplicationException ("Invalid VAT number: " + vat);
+        else try {
+            List<SaleRowDataGateway> sales = new SaleRowDataGateway().getAllSales(vat);
+            for(SaleRowDataGateway sale: sales)
+                sale.removeSale();
+        } catch (PersistenceException e) {
+                throw new ApplicationException ("Customer with vat number " + vat + " doesn't exist.", e);
+        }
+    }
+	
 }

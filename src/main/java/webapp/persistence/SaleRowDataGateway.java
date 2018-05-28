@@ -228,5 +228,20 @@ public class SaleRowDataGateway {
 		}
 	}
 	
+	/**
+     * Removes a sale using the ID SQL statement
+     */
+    private static final String REMOVE_SALE_BY_ID =
+            "delete from sale " +
+                       "where id = ?";
+     
+    public void removeSale () throws PersistenceException {
+        try (PreparedStatement statement = DataSource.INSTANCE.prepare(REMOVE_SALE_BY_ID)){
+            statement.setInt(1, id);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new PersistenceException("Internal error removing sale " + id + ".", e);
+        }
+    }
 		
 }
