@@ -38,7 +38,7 @@ public class SaleDBTest {
     }
     
     @Before
-	public void setup() throws SQLException {
+	public void setup() {
 
 		Operation initDBOperations = Operations.sequenceOf(
 			  DELETE_ALL
@@ -50,7 +50,6 @@ public class SaleDBTest {
         // Use the tracker to launch the DbSetup. This will speed-up tests 
 		// that do not not change the BD. Otherwise, just use dbSetup.launch();
         dbSetupTracker.launchIfNecessary(dbSetup);
-		
 	}
     
     @Test
@@ -67,11 +66,10 @@ public class SaleDBTest {
     	assumeTrue(CustomerService.INSTANCE.hasClient(vat));
     	int init = SaleService.INSTANCE.getSaleByCustomerVat(vat).sales.size();
         SaleService.INSTANCE.addSale(vat);
-        assertEquals("Size of adding sales to Customer should increment",init + 1,
-        		SaleService.INSTANCE.getSaleByCustomerVat(vat).sales.size());
+        assertEquals("Size of adding sales to Customer should increment",
+			init + 1, SaleService.INSTANCE.getSaleByCustomerVat(vat).sales.size());
       
     }
-    
     
     /**
 	 * f) adding a new sale increases the total number of all sales by one
@@ -82,14 +80,10 @@ public class SaleDBTest {
     	SaleService.INSTANCE.addSale(vat);
     	
     	int size = 0;
-		
-		List<CustomerDTO> customers = CustomerService.INSTANCE.getAllCustomers().customers;
-		for(CustomerDTO customer: customers)
-			size += SaleService.INSTANCE.getSaleByCustomerVat(customer.vat).sales.size();
+        for(CustomerDTO customer: CustomerService.INSTANCE.getAllCustomers().customers) {
+		    size += SaleService.INSTANCE.getSaleByCustomerVat(customer.vat).sales.size();
+        }
 		
 		assertEquals(NUM_INIT_SALES + 1, size);
     }
-    
-    
-    
 }

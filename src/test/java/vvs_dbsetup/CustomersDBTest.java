@@ -38,7 +38,7 @@ public class CustomersDBTest {
     }
     
 	@Before
-	public void setup() throws SQLException, ApplicationException {
+	public void setup() {
 
 		Operation initDBOperations = Operations.sequenceOf(
 			  DELETE_ALL
@@ -72,7 +72,7 @@ public class CustomersDBTest {
 		CustomerDTO cust = CustomerService.INSTANCE.getCustomerByVat(vat);
 		assumeTrue(CustomerService.INSTANCE.hasClient(vat));
 		CustomerService.INSTANCE.updateCustomerPhone(vat, cust.phoneNumber + 1);
-		assertTrue(CustomerService.INSTANCE.getCustomerByVat(vat).phoneNumber == cust.phoneNumber + 1);
+		assertEquals(cust.phoneNumber + 1, CustomerService.INSTANCE.getCustomerByVat(vat).phoneNumber);
 	}
 	
 	/**
@@ -83,7 +83,7 @@ public class CustomersDBTest {
 	public void deletingAllCustomersTest() throws ApplicationException {
 		assumeTrue(CustomerService.INSTANCE.getAllCustomers().customers.size() > 0);
 		deleteAllCustomers();
-		assertTrue(CustomerService.INSTANCE.getAllCustomers().customers.size() == 0);
+		assertEquals(0, CustomerService.INSTANCE.getAllCustomers().customers.size());
 	}
 
 	/**
@@ -104,8 +104,9 @@ public class CustomersDBTest {
 	private void deleteAllCustomers() throws ApplicationException{
 		CustomersDTO customersDTO = CustomerService.INSTANCE.getAllCustomers();
 		
-		for(CustomerDTO customer : customersDTO.customers)
+		for(CustomerDTO customer : customersDTO.customers) {
 			CustomerService.INSTANCE.removeCustomer(customer.vat);
+		}
 	}
 	
 	/**
@@ -119,8 +120,7 @@ public class CustomersDBTest {
 		assumeTrue(SaleService.INSTANCE.getSaleByCustomerVat(vat).sales.size() > 0);
 		SaleService.INSTANCE.addSale(vat);
 		CustomerService.INSTANCE.removeCustomer(vat);
-		assertEquals("Size should be zero after deletion",0,SaleService
-				.INSTANCE.getSaleByCustomerVat(vat).sales.size());
+		assertEquals("Size should be zero after deletion",
+            0, SaleService.INSTANCE.getSaleByCustomerVat(vat).sales.size());
 	}
-	
 }

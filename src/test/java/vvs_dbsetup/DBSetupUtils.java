@@ -27,8 +27,9 @@ public class DBSetupUtils {
 	
 	public static void startApplicationDatabaseForTesting() {
 		
-		if (appDatabaseAlreadyStarted)  // just do it once for the entire test suite;
+		if (appDatabaseAlreadyStarted) {  // just do it once for the entire test suite;
 			return;
+		}
 		
     	try {
 			webapp.persistence.DataSource.INSTANCE.connect(DB_URL, DB_USERNAME, DB_PASSWORD);
@@ -101,6 +102,4 @@ public class DBSetupUtils {
 		
 		INSERT_CUSTOMER_SALE_DELIVERY_DATA = sequenceOf(insertCustomers, insertAddresses, insertSales,  insertDeliveries);
 	}
-	
 }
-
